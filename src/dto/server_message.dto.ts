@@ -1,7 +1,8 @@
 export enum ServerMessageType {
   Plain = 'Plain',
   SelectionRequest = 'SelectionRequest',
-  PaymentRequest = 'PaymentRequest',
+  SelectionAndConfirmPrice = 'SelectionAndConfirmPrice',
+  OneTimePaymentRequest = 'OneTimePaymentRequest',
 }
 
 export class ServerMessageDto {

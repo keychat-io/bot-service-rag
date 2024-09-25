@@ -26,17 +26,20 @@ export class MessageService {
         return this.gptService.chat({
           userId: neo.from,
           content: ccd.content,
-          modelName: 'gpt-4o-mini',
         });
       case 'SelectionResponse':
-        return this.proccessSelectionResponse(ccd);
-      case 'PaymentResponse':
+        return this.proccessSelectionResponse(neo.from, ccd);
+      case 'OneTimePaymentResponse':
         return this.proccessPaymentResponse(ccd);
     }
   }
 
-  proccessSelectionResponse(ccd: ClientMessageDto) {
-    throw new Error('Method not implemented.');
+  async proccessSelectionResponse(from: string, ccd: ClientMessageDto) {
+    switch (ccd.id) {
+      case 'SelectModel':
+        await this.gptService.setSelectedModel(from, ccd.content);
+        return 'Success';
+    }
   }
   proccessPaymentResponse(ccd: ClientMessageDto) {
     throw new Error('Method not implemented.');

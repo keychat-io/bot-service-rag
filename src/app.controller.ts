@@ -16,8 +16,8 @@ export class AppController {
     return this.appService.getHello();
   }
 
-  @Post('/test')
-  async test(@Body() body: NostrEventDto) {
+  @Post('/chat')
+  async chat(@Body() body: NostrEventDto) {
     this.logger.log(body);
     const res = await this.messageService.proccessMessage(body);
     return { message: res };
