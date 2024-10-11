@@ -2,6 +2,16 @@ import { Injectable, Logger } from '@nestjs/common';
 import { ClientMessageDto } from 'src/dto/client_message.dto';
 import { NostrEventDto } from 'src/dto/nostr_event.dto';
 import { GPTService } from './gpt.service';
+import botPricePerMessageRequest from '../config/botPricePerMessageRequest.json';
+
+export enum BotSupportCommands {
+  HELP = '/h',
+  MODELS = '/m',
+}
+
+export function getBotSupportCommands(): Set<string> {
+  return new Set(Object.values(BotSupportCommands));
+}
 
 @Injectable()
 export class CommandService {
@@ -11,18 +21,11 @@ export class CommandService {
   async proccessCommand(neo: NostrEventDto, cmd: ClientMessageDto) {
     this.logger.log(`cmd: ${cmd} received`);
 
-    switch (cmd.content) {
-      case '/h':
-        return this.helpCommand();
-      case '/new':
-        await this.gptService.clearSession(neo.from);
-        return 'Success';
-      case '/models':
-        return await this.gptService.getModels();
+    switch (cmd.message) {
+      case BotSupportCommands.HELP:
+        return 'Help command Response';
+      case BotSupportCommands.MODELS:
+        return botPricePerMessageRequest;
     }
-  }
-
-  helpCommand() {
-    return 'Help command Response';
   }
 }

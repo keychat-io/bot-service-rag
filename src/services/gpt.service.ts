@@ -13,28 +13,6 @@ export enum OpenAIModels {
   GPT_4_TURBO = 'gpt-4-turbo',
 }
 
-const ModelsConfig = {
-  type: 'SelectionAndConfirmPrice',
-  id: 'SelectModel',
-  text: 'Please select a model to chat',
-  unit: 'sat',
-  method: 'ecash',
-  data: [
-    {
-      name: OpenAIModels.GPT_3_5_TURBO,
-      description: '',
-      price: 0,
-    },
-    {
-      name: OpenAIModels.GPT_4O,
-      description: '',
-      price: 1,
-    },
-    { name: OpenAIModels.GPT_4O_MINI, description: '', price: 2 },
-    { name: OpenAIModels.GPT_4_TURBO, description: '', price: 3 },
-  ],
-};
-
 @Injectable()
 export class GPTService {
   constructor(private configService: ConfigService) {}
@@ -82,8 +60,12 @@ export class GPTService {
     return 'Success';
   }
 
-  async chat(input: { userId: string; content: string }): Promise<string> {
-    const modelName = await this.getSelectedModel(input.userId);
+  async chat(input: {
+    userId: string;
+    content: string;
+    priceModel: string;
+  }): Promise<string> {
+    const modelName = getModelEnumByName(input.priceModel);
     this.logger.log(`Selected Model: ${modelName}`);
     const model = new ChatOpenAI({
       model: modelName,
@@ -99,8 +81,16 @@ export class GPTService {
     this.logger.log(`AI Response: ${response}`);
     return response;
   }
-
-  getModels() {
-    return ModelsConfig;
+}
+function getModelEnumByName(priceModel: string): string {
+  switch (priceModel) {
+    case 'gpt-3.5-turbo':
+      return OpenAIModels.GPT_3_5_TURBO;
+    case 'gpt-4o-mini':
+      return OpenAIModels.GPT_4O_MINI;
+    case 'gpt-4-turbo':
+      return OpenAIModels.GPT_4_TURBO;
+    default:
+      return OpenAIModels.GPT_4O;
   }
 }

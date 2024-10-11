@@ -1,15 +1,11 @@
-export enum ClientMessageType {
-  Plain = 'Plain',
-  Command = 'Command',
-  SelectionResponse = 'SelectionResponse',
-  PaymentResponse = 'OneTimePaymentResponse',
-}
+import { MessageTypeEnum } from './message_type_enum';
 
 export class ClientMessageDto {
-  type: ClientMessageType;
-  content: string;
+  type: MessageTypeEnum;
+  message: string;
   id?: string;
   payToken?: string;
+  priceModel?: string;
 
   static parse(data: string): ClientMessageDto {
     const jsonObj = JSON.parse(data);
@@ -19,8 +15,9 @@ export class ClientMessageDto {
   fromJSON(jsonObj: any): ClientMessageDto {
     this.id = jsonObj.id;
     this.type = jsonObj.type;
-    this.content = jsonObj.content;
+    this.message = jsonObj.message;
     this.payToken = jsonObj.payToken;
+    this.priceModel = jsonObj.priceModel;
     return this;
   }
 }

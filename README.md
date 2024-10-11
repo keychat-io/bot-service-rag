@@ -32,92 +32,106 @@ Message 1 from BotCenter
   "from": "from1253",
   "to": "to123",
   "content": "content123",
-  "decryptedDontent": "{\"type\":\"Plain\",\"content\":\"Hi, I am keychat.\"}",
-  "createAt": 1234567,
-  "sig": "sig123"
-}
-```
-Message 2 from BotCenter
-
-```json
-{
-  "id": "id1234",
-  "from": "from1253",
-  "to": "to123",
-  "content": "content123",
-  "decryptedDontent": "{\"type\":\"Plain\",\"content\":\"Who am I?\"}",
+  "decryptedDontent": "{\"type\":\"botText\",\"content\":\"Hi, I am keychat.\"}",
   "createAt": 1234567,
   "sig": "sig123"
 }
 ```
 
-## Fetch models
+### Message Struct 
 
+Client
 ```
 {
-  type: 'Command',
-  content: '/models'
+  type: MessageTypeEnum;
+  message: string;
+  id?: string;
+  payToken?: string;
+  priceModel?: string;
 }
 ```
 
-json data
+Server
 ```
 {
-  "id": "id1234",
-  "from": "from1253",
-  "to": "to123",
-  "content": "content123",
-  "decryptedDontent": "{\"type\":\"Command\",\"content\":\"/models\"}",
-  "createAt": 1234567,
-  "sig": "sig123"
+  type: MessageTypeEnum;
+  id: string;
+  description: string;
+  data: string;
+  list: BotMessageData[];
 }
 ```
 
-### SelectionAndConfirmPrice
-Server side send message
+BotMessageData
+```
+{
+  name: string;  // price model id
+  description: string;
+  price: number;
+  unit: string;
+  mints: string[];
+}
+```
+
+MessageTypeEnum - App Client
+```
+{
+  botText,
+  botOneTimePaymentRequest,  
+}
+```
+
+MessageTypeEnum - Bot Server
+```
+{
+  botText,
+  botPricePerMessageRequest, 
+  botOneTimePaymentRequest,  
+}
+```
+
+### Client Commands
+1. Client Message: /h
+
+Client data as:
+`{"type":"botText","message":"/h"}`
+
+BotServer: send help message to user.
+Server Response: `you can ask me any questions`
+
+1. Client Message: `{"type":"botText","message":"/m"}`
+BotServer: send all charge models to user. 
 
 ```
 {
-  type: 'SelectionAndConfirmPrice',
-  id: 'SelectModel', // service custom name
-  text: 'Please select a model to chat',
-  unit: 'sat',
-  method: 'ecash',
-  data: [
+  "type": "botPricePerMessageRequest",
+  "id": "SelectPriceModel",
+  "message": "Please select a model to chat",
+  "priceModels": [
     {
-      name: 'gpt-3.5-turbo',
-      description: '',
-      price: 0,
+      "name": "gpt-3.5-turbo",
+      "description": "",
+      "price": 0,
+      "unit": "sat",
+      "mints": []
     },
     {
-      name: 'gpt-4',
-      description: '',
-      price: 1,
-    },
-  ],
-};
-```
-
-When user select a option, client will send a message 
-
-```
-{
-  type: 'SelectionResponse',
-  content: 'gpt-4'
-  id: 'SelectModel',
+      "name": "gpt-4o-mini",
+      "description": "",
+      "price": 2,
+      "unit": "sat",
+      "mints": []
+    }
+  ]
 }
 ```
+If the user sets the charging configuration, a cashu Token will be attached to each message.
 
-to send json data
+Example, If select `gpt-4o-mini` and  send `Who are your?` to bot.
+Client's send message like this:
 
 ```
-{
-  "id": "id1234",
-  "from": "from1253",
-  "to": "to123",
-  "content": "content123",
-  "decryptedDontent": "{\"type\":\"SelectionResponse\",\"content\":\"gpt-4\",\"id\":\"SelectModel\"}",
-  "createAt": 1234567,
-  "sig": "sig123"
-}
+{"type":"plain","message":"Who are your?","priceModel":"gpt-4o-mini","payToken":"cashuBo2Ftd2h0dHBzOi8vODMzMy5zcGFjZTozMzM4YXVjc2F0YXSBomFpSAB1nj-LBrNvYXCBo2FhAmFzeEBhODljMjk0ZTBjMDhkMzQ0YTljZmRhZDgzMzFmNDI5ZDRiZWE0ZDJkYjA0NzBiMjExZDM5MDY1MWRhZDAwOWZkYWNYIQKGsB8Zx6ABj3Z02asmKR9HFDySfVHgP_UDhnSPMvWquw"}
 ```
+
+bot server will recive `payToken`, and make response to user.

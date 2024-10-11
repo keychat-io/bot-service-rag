@@ -1,14 +1,16 @@
-export enum ServerMessageType {
-  Plain = 'Plain',
-  SelectionRequest = 'SelectionRequest',
-  SelectionAndConfirmPrice = 'SelectionAndConfirmPrice',
-  OneTimePaymentRequest = 'OneTimePaymentRequest',
-}
+import { MessageTypeEnum } from './message_type_enum';
 
+class BotMessageData {
+  name: string;
+  description: string;
+  price: number;
+  unit: string;
+  mints: string[];
+}
 export class ServerMessageDto {
-  type: ServerMessageType;
+  type: MessageTypeEnum;
   id: string;
   description: string;
   data: string;
-  list: [];
+  list: BotMessageData[];
 }
