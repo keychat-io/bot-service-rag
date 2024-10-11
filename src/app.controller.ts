@@ -19,7 +19,12 @@ export class AppController {
   @Post('/chat')
   async chat(@Body() body: NostrEventDto) {
     this.logger.log(body);
-    const res = await this.messageService.proccessMessage(body);
-    return { message: res };
+    try {
+      const res = await this.messageService.proccessMessage(body);
+      return res;
+    } catch (error) {
+      this.logger.error(error.message, error.stack);
+      return `[Error] ${error.message}`;
+    }
   }
 }

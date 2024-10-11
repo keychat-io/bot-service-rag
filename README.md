@@ -2,9 +2,12 @@
 
 ## Description
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+* Handle `/*` message. like: `/h` 
+* Receive any text from client app, and send response
+* Perform charging operations, receive ecash token
 
 ## Project setup
+[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
 
 ```bash
 $ yarn install
@@ -24,7 +27,7 @@ $ yarn run start:prod
 ```
 
 ## DTO
-Message 1 from BotCenter
+Message from BotCenter
 
 ```json
 {
@@ -73,15 +76,7 @@ BotMessageData
 }
 ```
 
-MessageTypeEnum - App Client
-```
-{
-  botText,
-  botOneTimePaymentRequest,  
-}
-```
-
-MessageTypeEnum - Bot Server
+MessageTypeEnum 
 ```
 {
   botText,
@@ -91,15 +86,13 @@ MessageTypeEnum - Bot Server
 ```
 
 ### Client Commands
-1. Client Message: /h
-
-Client data as:
+1. Client Message:
 `{"type":"botText","message":"/h"}`
 
 BotServer: send help message to user.
 Server Response: `you can ask me any questions`
 
-1. Client Message: `{"type":"botText","message":"/m"}`
+2. Client Message: `{"type":"botText","message":"/m"}`
 BotServer: send all charge models to user. 
 
 ```
@@ -130,8 +123,8 @@ If the user sets the charging configuration, a cashu Token will be attached to e
 Example, If select `gpt-4o-mini` and  send `Who are your?` to bot.
 Client's send message like this:
 
-```
-{"type":"plain","message":"Who are your?","priceModel":"gpt-4o-mini","payToken":"cashuBo2Ftd2h0dHBzOi8vODMzMy5zcGFjZTozMzM4YXVjc2F0YXSBomFpSAB1nj-LBrNvYXCBo2FhAmFzeEBhODljMjk0ZTBjMDhkMzQ0YTljZmRhZDgzMzFmNDI5ZDRiZWE0ZDJkYjA0NzBiMjExZDM5MDY1MWRhZDAwOWZkYWNYIQKGsB8Zx6ABj3Z02asmKR9HFDySfVHgP_UDhnSPMvWquw"}
+```json
+{"type":"botText","message":"Who are your?","priceModel":"gpt-4o-mini","payToken":"cashuBo2Ftd2h0dHBzOi8vODMzMy5zcGFjZTozMzM4YXVjc2F0YXSBomFpSAB1nj-LBrNvYXCBo2FhAmFzeEBhODljMjk0ZTBjMDhkMzQ0YTljZmRhZDgzMzFmNDI5ZDRiZWE0ZDJkYjA0NzBiMjExZDM5MDY1MWRhZDAwOWZkYWNYIQKGsB8Zx6ABj3Z02asmKR9HFDySfVHgP_UDhnSPMvWquw"}
 ```
 
 bot server will recive `payToken`, and make response to user.

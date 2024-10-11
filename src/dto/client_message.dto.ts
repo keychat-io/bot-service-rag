@@ -14,7 +14,9 @@ export class ClientMessageDto {
 
   fromJSON(jsonObj: any): ClientMessageDto {
     this.id = jsonObj.id;
-    this.type = jsonObj.type;
+    this.type = MessageTypeEnum[jsonObj.type as keyof typeof MessageTypeEnum];
+    if (this.type == null) throw Error('type field is required');
+    if (jsonObj.message == null) throw Error('message filed is required');
     this.message = jsonObj.message;
     this.payToken = jsonObj.payToken;
     this.priceModel = jsonObj.priceModel;

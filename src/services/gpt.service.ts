@@ -5,14 +5,7 @@ import { ChatOpenAI } from '@langchain/openai';
 import { ConversationChain } from 'langchain/chains';
 import Redis from 'ioredis';
 import { ConfigService } from '@nestjs/config';
-
-export enum OpenAIModels {
-  GPT_3_5_TURBO = 'gpt-3.5-turbo',
-  GPT_4O = 'gpt-4o',
-  GPT_4O_MINI = 'gpt-4o-mini',
-  GPT_4_TURBO = 'gpt-4-turbo',
-}
-
+import * as aiModels from '../config/aiModels.json';
 @Injectable()
 export class GPTService {
   constructor(private configService: ConfigService) {}
@@ -45,10 +38,10 @@ export class GPTService {
   }
 
   async setSelectedModel(from: string, model: string) {
-    if (!Object.values(OpenAIModels).includes(model as OpenAIModels)) {
-      this.logger.debug('Invalid Model Selected');
-      model = 'gpt-4o-mini';
-    }
+    // if (!Object.values(OpenAIModels).includes(model as OpenAIModels)) {
+    //   this.logger.debug('Invalid Model Selected');
+    //   model = 'gpt-4o-mini';
+    // }
     const key = `gptModel:${from}`;
     await this.redisClient.set(key, model);
   }
@@ -64,33 +57,35 @@ export class GPTService {
     userId: string;
     content: string;
     priceModel: string;
+    payToken?: string;
   }): Promise<string> {
-    const modelName = getModelEnumByName(input.priceModel);
-    this.logger.log(`Selected Model: ${modelName}`);
+    let selectedModel: { name: string; price: number; unit: string } =
+      aiModels.find((model) => model.name === input.priceModel);
+    if (selectedModel == null) {
+      selectedModel = aiModels[0];
+    }
+    if (selectedModel.price > 0) {
+      if (input.payToken == null) {
+        throw Error(
+          `Payment Required: ${selectedModel.price} ${selectedModel.unit}`,
+        );
+      }
+      // TODO excute payment logic
+      this.logger.log('paytoken: ' + input.payToken);
+    }
+    this.logger.log(`Selected Model: ${selectedModel.name}`);
     const model = new ChatOpenAI({
-      model: modelName,
+      model: selectedModel.name,
       temperature: 0.8,
       openAIApiKey: process.env.OPENAI_API_KEY,
       configuration: {
         baseURL: 'https://api.aihubmix.com/v1',
       },
     });
-    const memory = this.getSession(modelName, input.userId);
+    const memory = this.getSession(selectedModel.name, input.userId);
     const chain = new ConversationChain({ llm: model, memory });
     const { response } = await chain.invoke({ input: input.content });
     this.logger.log(`AI Response: ${response}`);
     return response;
-  }
-}
-function getModelEnumByName(priceModel: string): string {
-  switch (priceModel) {
-    case 'gpt-3.5-turbo':
-      return OpenAIModels.GPT_3_5_TURBO;
-    case 'gpt-4o-mini':
-      return OpenAIModels.GPT_4O_MINI;
-    case 'gpt-4-turbo':
-      return OpenAIModels.GPT_4_TURBO;
-    default:
-      return OpenAIModels.GPT_4O;
   }
 }
