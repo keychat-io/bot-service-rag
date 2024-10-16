@@ -4,13 +4,15 @@ import { NostrEventDto } from 'src/dto/nostr_event.dto';
 import { CommandService, getBotSupportCommands } from './command.service';
 import { GPTService } from './gpt.service';
 import { MessageTypeEnum } from 'src/dto/message_type_enum';
-// import { Cat } from './interfaces/cat.interface';
+import { QueueService } from './queue.service';
+import { ChatInputParams } from 'src/dto/chat_input_params.dto';
 
 @Injectable()
 export class MessageService {
   private readonly logger = new Logger(GPTService.name);
 
   constructor(
+    @Inject(QueueService) private queueService: QueueService,
     @Inject(CommandService) private commandService: CommandService,
     @Inject(GPTService) private gptService: GPTService,
   ) {}
@@ -40,21 +42,18 @@ export class MessageService {
     ) {
       return this.commandService.proccessCommand(neo, ccd);
     }
-    return this.gptService.chat({
-      userId: neo.from,
+    // start chat job
+    this.queueService.addJob({
+      eventId: neo.id,
+      from: neo.from,
+      to: neo.to,
       content: ccd.message,
       priceModel: ccd.priceModel,
       payToken: ccd.payToken,
-    });
+    } as ChatInputParams);
+    return { code: 200 };
   }
 
-  // async proccessSelectionResponse(from: string, ccd: ClientMessageDto) {
-  //   switch (ccd.id) {
-  //     case 'SelectModel':
-  //       await this.gptService.setSelectedModel(from, ccd.message);
-  //       return 'Success';
-  //   }
-  // }
   proccessOnetimePaymentResponse(ccd: ClientMessageDto) {
     console.log(ccd.payToken);
     throw new Error('Method not implemented.');

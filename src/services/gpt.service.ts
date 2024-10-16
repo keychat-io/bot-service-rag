@@ -6,6 +6,7 @@ import { ConversationChain } from 'langchain/chains';
 import Redis from 'ioredis';
 import { ConfigService } from '@nestjs/config';
 import * as aiModels from '../config/aiModels.json';
+import { ChatInputParams } from 'src/dto/chat_input_params.dto';
 @Injectable()
 export class GPTService {
   constructor(private configService: ConfigService) {}
@@ -13,7 +14,7 @@ export class GPTService {
   redisClient: Redis;
 
   async onModuleInit(): Promise<void> {
-    this.redisClient = new Redis(this.configService.get<string>('redis'));
+    this.redisClient = new Redis(this.configService.get<string>('redisUrl'));
     this.logger.log('Redis Client Connected');
   }
 
@@ -53,36 +54,39 @@ export class GPTService {
     return 'Success';
   }
 
-  async chat(input: {
-    userId: string;
-    content: string;
-    priceModel: string;
-    payToken?: string;
-  }): Promise<string> {
+  async proccessChat(input: ChatInputParams): Promise<string> {
+    this.logger.log(`Chat Input: ${JSON.stringify(input)}`);
     let selectedModel: { name: string; price: number; unit: string } =
       aiModels.find((model) => model.name === input.priceModel);
+    this.logger.log(`Chat Input2:`);
+
     if (selectedModel == null) {
       selectedModel = aiModels[0];
     }
     if (selectedModel.price > 0) {
       if (input.payToken == null) {
-        throw Error(
+        this.logger.log(
           `Payment Required: ${selectedModel.price} ${selectedModel.unit}`,
         );
+        return;
       }
       // TODO excute payment logic
       this.logger.log('paytoken: ' + input.payToken);
     }
-    this.logger.log(`Selected Model: ${selectedModel.name}`);
+    this.logger.log(`Chat Input3:`);
+
+    this.logger.log(`Selected Model: ${selectedModel.name} ${input.content}`);
     const model = new ChatOpenAI({
       model: selectedModel.name,
-      temperature: 0.8,
+      temperature: 1,
       openAIApiKey: process.env.OPENAI_API_KEY,
-      configuration: {
-        baseURL: 'https://api.aihubmix.com/v1',
-      },
+      maxTokens: 2048,
+      // configuration: {
+      // organization: process.env.OPENAI_ORG_ID,
+      // baseURL: 'https://api.aihubmix.com/v1',
+      // },
     });
-    const memory = this.getSession(selectedModel.name, input.userId);
+    const memory = this.getSession(selectedModel.name, input.from);
     const chain = new ConversationChain({ llm: model, memory });
     const { response } = await chain.invoke({ input: input.content });
     this.logger.log(`AI Response: ${response}`);
