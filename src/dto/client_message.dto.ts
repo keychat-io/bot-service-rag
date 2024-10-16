@@ -22,4 +22,13 @@ export class ClientMessageDto {
     this.priceModel = jsonObj.priceModel;
     return this;
   }
+  toJson() {
+    return JSON.stringify({
+      id: this.id,
+      type: MessageTypeEnum[this.type],
+      message: this.message,
+      payToken: this.payToken,
+      priceModel: this.priceModel,
+    });
+  }
 }

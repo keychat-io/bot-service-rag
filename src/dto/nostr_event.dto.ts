@@ -3,7 +3,6 @@ export class NostrEventDto {
   from: string;
   to: string;
   content: string;
-  decryptedDontent: string;
   createAt: number;
   sig: string;
 
@@ -16,7 +15,6 @@ export class NostrEventDto {
     this.from = jsonObj.from;
     this.to = jsonObj.to;
     this.content = jsonObj.content;
-    this.decryptedDontent = jsonObj.decryptedDontent;
     this.createAt = jsonObj.createAt;
     this.sig = jsonObj.sig;
     return this;

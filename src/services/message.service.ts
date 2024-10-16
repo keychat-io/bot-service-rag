@@ -1,28 +1,95 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { ClientMessageDto } from 'src/dto/client_message.dto';
 import { NostrEventDto } from 'src/dto/nostr_event.dto';
-import { CommandService, getBotSupportCommands } from './command.service';
 import { GPTService } from './gpt.service';
 import { MessageTypeEnum } from 'src/dto/message_type_enum';
 import { QueueService } from './queue.service';
 import { ChatInputParams } from 'src/dto/chat_input_params.dto';
+import ReconnectingWebSocket from 'reconnecting-websocket';
+import { delay } from 'rxjs';
+import WS from 'ws';
+import axios from 'axios';
+import botPricePerMessageRequest from '../config/botPricePerMessageRequest.json';
+
+enum BotSupportCommands {
+  HELP = '/h',
+  MODELS = '/m',
+}
+
+function getBotSupportCommands(): Set<string> {
+  return new Set(Object.values(BotSupportCommands));
+}
 
 @Injectable()
 export class MessageService {
   private readonly logger = new Logger(GPTService.name);
 
-  constructor(
-    @Inject(QueueService) private queueService: QueueService,
-    @Inject(CommandService) private commandService: CommandService,
-    @Inject(GPTService) private gptService: GPTService,
-  ) {}
+  private websocket: ReconnectingWebSocket;
 
-  // proccessMessage(command: string) {
-  //   console.log(`Command: ${command} received`);
-  //   const neo = NostrEventDto.parse(command);
+  constructor(@Inject(QueueService) private queueService: QueueService) {
+    if (process.env.BOT_CENTER_SUBSCRIBE == null) {
+      throw new Error('process.env.BOT_CENTER_SUBSCRIBE is null');
+    }
+    this.websocket = new ReconnectingWebSocket(
+      process.env.BOT_CENTER_SUBSCRIBE,
+      [],
+      { WebSocket: WS },
+    );
+    this.websocket.addEventListener('open', () => {
+      this.logger.log(`${process.env.BOT_CENTER_SUBSCRIBE} connected`);
+      this.sendHelloMessage();
+    });
+
+    this.websocket.addEventListener('message', (data) => {
+      this.logger.log(`message: ${data.data}`);
+      let ned: NostrEventDto;
+      try {
+        ned = NostrEventDto.parse(data.data);
+        this.proccessMessage(ned);
+      } catch (error) {
+        this.logger.error(error.message, error.stack);
+      } finally {
+        if (ned != null && ned.id != null) {
+          this.websocket.send(ned.id);
+        }
+      }
+    });
+  }
+  async sendMessageToClient(to: string, message: string) {
+    try {
+      const url = `${process.env.BOT_CENTER_SEND_MESSAGE}/from/${process.env.GPT_BOT_PUBKEY}/to/${to}`;
+
+      const response = await axios.post(url, message);
+      this.logger.log(
+        `Message sent: ${message} ,res: ${JSON.stringify(response.data)}`,
+      );
+    } catch (error) {
+      this.logger.error(
+        `Failed to send message: ${error.message}`,
+        error.stack,
+      );
+    }
+  }
+  async sendHelloMessage() {
+    if (process.env.GPT_BOT_PUBKEY.length === 0) {
+      this.logger.error('process.env.GPT_BOT_PUBKEY is empty');
+      return;
+    }
+    await delay(500);
+    this.websocket.send(process.env.GPT_BOT_PUBKEY);
+  }
 
   proccessMessage(neo: NostrEventDto) {
-    const ccd = ClientMessageDto.parse(neo.decryptedDontent);
+    let ccd: ClientMessageDto;
+    try {
+      ccd = ClientMessageDto.parse(neo.content);
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    } catch (e) {
+      ccd = new ClientMessageDto().fromJSON({
+        type: MessageTypeEnum.botText,
+        message: neo.content,
+      });
+    }
     this.logger.log(`ClientCommandDto: ${JSON.stringify(ccd)}`);
     switch (ccd.type) {
       case MessageTypeEnum.botText:
@@ -31,7 +98,7 @@ export class MessageService {
         return this.proccessOnetimePaymentResponse(ccd);
       default:
         this.logger.error(`Unknown message type: ${ccd.type}`);
-        return this.proccessText(neo, ccd);
+        return this.sendMessageToClient(neo.from, 'Unknown message type');
     }
   }
 
@@ -40,7 +107,7 @@ export class MessageService {
       ccd.message.startsWith('/') &&
       getBotSupportCommands().has(ccd.message)
     ) {
-      return this.commandService.proccessCommand(neo, ccd);
+      return this.proccessCommand(neo, ccd);
     }
     // start chat job
     this.queueService.addJob({
@@ -59,7 +126,17 @@ export class MessageService {
     throw new Error('Method not implemented.');
   }
 
-  helpCommand() {
-    return 'After choosing the paid model, you can ask me any questions';
+  async proccessCommand(neo: NostrEventDto, cmd: ClientMessageDto) {
+    this.logger.log(`cmd: ${cmd.toJson()} received`);
+
+    switch (cmd.message) {
+      case BotSupportCommands.HELP:
+        return this.sendMessageToClient(neo.from, 'Help command Response');
+      case BotSupportCommands.MODELS:
+        return this.sendMessageToClient(
+          neo.from,
+          JSON.stringify(botPricePerMessageRequest),
+        );
+    }
   }
 }

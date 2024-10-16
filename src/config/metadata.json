@@ -14,7 +14,7 @@
   ],
   "botPricePerMessageRequest": {
     "type": "botPricePerMessageRequest",
-    "message": "Please select a model to chat",
+    "message": "I am a chatbot that can help you with your queries. Pay ecash for each message you send. Please select a model to chat",
     "priceModels": [
       {
         "name": "GPT-4o",

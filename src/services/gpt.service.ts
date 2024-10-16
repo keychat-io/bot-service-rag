@@ -1,15 +1,21 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { forwardRef, Inject, Injectable, Logger } from '@nestjs/common';
 import { BufferMemory } from 'langchain/memory';
 import { RedisChatMessageHistory } from '@langchain/community/stores/message/ioredis';
 import { ChatOpenAI } from '@langchain/openai';
 import { ConversationChain } from 'langchain/chains';
 import Redis from 'ioredis';
 import { ConfigService } from '@nestjs/config';
-import * as aiModels from '../config/aiModels.json';
+import aiModels from '../config/aiModels.json';
 import { ChatInputParams } from 'src/dto/chat_input_params.dto';
+import { MessageService } from './message.service';
+import metadata from '../config/metadata.json';
 @Injectable()
 export class GPTService {
-  constructor(private configService: ConfigService) {}
+  constructor(
+    private configService: ConfigService,
+    @Inject(forwardRef(() => MessageService))
+    private messageService: MessageService,
+  ) {}
   private readonly logger = new Logger(GPTService.name);
   redisClient: Redis;
 
@@ -55,10 +61,23 @@ export class GPTService {
   }
 
   async proccessChat(input: ChatInputParams): Promise<string> {
+    // try keychat hello message
+    try {
+      const map = JSON.parse(input.content);
+      if (map['c'] == 'signal' && map['type'] == 101) {
+        this.logger.log('Hello message received');
+        await this.messageService.sendMessageToClient(
+          input.from,
+          JSON.stringify(metadata),
+        );
+        return;
+      }
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    } catch (error) {}
+    // nomarl chat
     this.logger.log(`Chat Input: ${JSON.stringify(input)}`);
     let selectedModel: { name: string; price: number; unit: string } =
       aiModels.find((model) => model.name === input.priceModel);
-    this.logger.log(`Chat Input2:`);
 
     if (selectedModel == null) {
       selectedModel = aiModels[0];
@@ -73,7 +92,6 @@ export class GPTService {
       // TODO excute payment logic
       this.logger.log('paytoken: ' + input.payToken);
     }
-    this.logger.log(`Chat Input3:`);
 
     this.logger.log(`Selected Model: ${selectedModel.name} ${input.content}`);
     const model = new ChatOpenAI({
@@ -90,6 +108,7 @@ export class GPTService {
     const chain = new ConversationChain({ llm: model, memory });
     const { response } = await chain.invoke({ input: input.content });
     this.logger.log(`AI Response: ${response}`);
+    this.messageService.sendMessageToClient(input.from, response);
     return response;
   }
 }

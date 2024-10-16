@@ -1,5 +1,5 @@
-import { Inject, Injectable } from '@nestjs/common';
-import * as BeeQueue from 'bee-queue';
+import { forwardRef, Inject, Injectable } from '@nestjs/common';
+import BeeQueue from 'bee-queue';
 import { ConfigService } from '@nestjs/config';
 import { Logger } from '@nestjs/common';
 import { GPTService } from './gpt.service';
@@ -12,7 +12,7 @@ export class QueueService {
 
   constructor(
     private readonly configService: ConfigService,
-    @Inject(GPTService) private gptService: GPTService,
+    @Inject(forwardRef(() => GPTService)) private gptService: GPTService,
   ) {}
 
   async onModuleInit(): Promise<void> {
