@@ -105,10 +105,11 @@ export class GPTService {
     return response;
   }
   getSelectedModelFromMetadata(priceModel: string) {
-    if (priceModel == null)
+    if (priceModel == null) {
       return metadata.botPricePerMessageRequest.priceModels[0];
+    }
     for (const model of metadata.botPricePerMessageRequest.priceModels) {
-      if (model.name.toLocaleLowerCase() === priceModel) {
+      if (model.name.toLowerCase() === priceModel.toLowerCase()) {
         return model;
       }
     }
