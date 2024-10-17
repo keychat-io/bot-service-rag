@@ -77,7 +77,6 @@ export class GPTService {
 
     this.logger.log(`Chat Input: ${JSON.stringify(input)}`);
     const selectedModel = this.getSelectedModelFromMetadata(input.priceModel);
-    this.logger.log(`Selected Model: ${selectedModel.name} ,${input.content}`);
 
     if (selectedModel.price > 0) {
       if (input.payToken == null) {
@@ -90,10 +89,11 @@ export class GPTService {
       }
       this.logger.log('paytoken: ' + input.payToken);
     }
+    this.logger.log(`Selected: ${selectedModel.name}, ${input.content}`);
 
     const model = new ChatOpenAI({
-      model: selectedModel.name.toLocaleLowerCase(),
-      temperature: 0.8,
+      model: selectedModel.name.toLowerCase(),
+      temperature: 0.5,
       openAIApiKey: process.env.OPENAI_API_KEY,
       maxTokens: 4096,
     });
