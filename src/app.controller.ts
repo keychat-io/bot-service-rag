@@ -16,7 +16,7 @@ export class AppController {
     return this.appService.getHello();
   }
 
-  @Post('/test')
+  @Post('/chat')
   async chat(@Body() body: NostrEventDto) {
     this.logger.log(body);
     try {

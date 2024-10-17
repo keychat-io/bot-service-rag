@@ -5,7 +5,6 @@ import { ChatOpenAI } from '@langchain/openai';
 import { ConversationChain } from 'langchain/chains';
 import Redis from 'ioredis';
 import { ConfigService } from '@nestjs/config';
-import { botPricePerMessageRequest } from '../config/metadata.json';
 import { ChatInputParams } from 'src/dto/chat_input_params.dto';
 import { MessageService } from './message.service';
 import metadata from '../config/metadata.json';
@@ -75,16 +74,11 @@ export class GPTService {
       }
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {}
-    // nomarl chat
-    this.logger.log(`Chat Input: ${JSON.stringify(input)}`);
-    let selectedModel: { name: string; price: number; unit: string } =
-      botPricePerMessageRequest.priceModels.find(
-        (model) => model.name.toLowerCase() === input.priceModel.toLowerCase(),
-      );
 
-    if (selectedModel == null) {
-      selectedModel = botPricePerMessageRequest.priceModels[0];
-    }
+    this.logger.log(`Chat Input: ${JSON.stringify(input)}`);
+    const selectedModel = this.getSelectedModelFromMetadata(input.priceModel);
+    this.logger.log(`Selected Model: ${selectedModel.name} ,${input.content}`);
+
     if (selectedModel.price > 0) {
       if (input.payToken == null) {
         this.logger.log(
@@ -97,18 +91,27 @@ export class GPTService {
       this.logger.log('paytoken: ' + input.payToken);
     }
 
-    this.logger.log(`Selected Model: ${selectedModel.name} ${input.content}`);
     const model = new ChatOpenAI({
-      model: selectedModel.name.toLowerCase(),
+      model: selectedModel.name.toLocaleLowerCase(),
       temperature: 0.8,
       openAIApiKey: process.env.OPENAI_API_KEY,
-      maxTokens: 2048,
+      maxTokens: 4096,
     });
     const memory = this.getSession(selectedModel.name, input.from);
     const chain = new ConversationChain({ llm: model, memory });
     const { response } = await chain.invoke({ input: input.content });
-    this.logger.log(`AI Response: ${response}`);
+    this.logger.log('AI Response:', response);
     this.messageService.sendMessageToClient(input.from, response);
     return response;
+  }
+  getSelectedModelFromMetadata(priceModel: string) {
+    if (priceModel == null)
+      return metadata.botPricePerMessageRequest.priceModels[0];
+    for (const model of metadata.botPricePerMessageRequest.priceModels) {
+      if (model.name.toLocaleLowerCase() === priceModel) {
+        return model;
+      }
+    }
+    return metadata.botPricePerMessageRequest.priceModels[0];
   }
 }
