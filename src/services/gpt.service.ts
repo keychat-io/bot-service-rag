@@ -66,10 +66,10 @@ export class GPTService {
       const map = JSON.parse(input.content);
       if (map['c'] == 'signal' && map['type'] == 101) {
         this.logger.log('Hello message received');
-        await this.messageService.sendMessageToClient(
-          input.from,
-          JSON.stringify(metadata),
-        );
+        // await this.messageService.sendMessageToClient(
+        //   input.from,
+        //   JSON.stringify(metadata),
+        // );
         return;
       }
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
