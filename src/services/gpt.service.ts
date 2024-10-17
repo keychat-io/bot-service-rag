@@ -9,6 +9,7 @@ import { botPricePerMessageRequest } from '../config/metadata.json';
 import { ChatInputParams } from 'src/dto/chat_input_params.dto';
 import { MessageService } from './message.service';
 import metadata from '../config/metadata.json';
+
 @Injectable()
 export class GPTService {
   constructor(
@@ -90,8 +91,9 @@ export class GPTService {
           `Payment Required: ${selectedModel.price} ${selectedModel.unit}`,
         );
         return;
+      } else {
+        // TODO excute payment logic
       }
-      // TODO excute payment logic
       this.logger.log('paytoken: ' + input.payToken);
     }
 

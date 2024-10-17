@@ -9,7 +9,7 @@ import ReconnectingWebSocket from 'reconnecting-websocket';
 import { delay } from 'rxjs';
 import WS from 'ws';
 import axios from 'axios';
-import botPricePerMessageRequest from '../config/botPricePerMessageRequest.json';
+import { botPricePerMessageRequest } from '../config/metadata.json';
 
 enum BotSupportCommands {
   HELP = '/h',
