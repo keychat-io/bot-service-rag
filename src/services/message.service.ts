@@ -60,9 +60,7 @@ export class MessageService {
       const url = `${process.env.BOT_CENTER_SEND_MESSAGE}/from/${process.env.GPT_BOT_PUBKEY}/to/${to}`;
 
       const response = await axios.post(url, message);
-      this.logger.log(
-        `Message sent: ${message} ,res: ${JSON.stringify(response.data)}`,
-      );
+      this.logger.log(`Message response: ${JSON.stringify(response.data)}`);
     } catch (error) {
       this.logger.error(
         `Failed to send message: ${error.message}`,
@@ -131,7 +129,8 @@ export class MessageService {
 
     switch (cmd.message) {
       case BotSupportCommands.HELP:
-        return this.sendMessageToClient(neo.from, 'Help command Response');
+        const helpMessage = `I am a chatbot that can help you with your queries. Pay ecash for each message you send.`;
+        return this.sendMessageToClient(neo.from, helpMessage);
       case BotSupportCommands.MODELS:
         return this.sendMessageToClient(
           neo.from,

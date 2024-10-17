@@ -5,7 +5,7 @@ import { ChatOpenAI } from '@langchain/openai';
 import { ConversationChain } from 'langchain/chains';
 import Redis from 'ioredis';
 import { ConfigService } from '@nestjs/config';
-import aiModels from '../config/aiModels.json';
+import { botPricePerMessageRequest } from '../config/metadata.json';
 import { ChatInputParams } from 'src/dto/chat_input_params.dto';
 import { MessageService } from './message.service';
 import metadata from '../config/metadata.json';
@@ -77,10 +77,12 @@ export class GPTService {
     // nomarl chat
     this.logger.log(`Chat Input: ${JSON.stringify(input)}`);
     let selectedModel: { name: string; price: number; unit: string } =
-      aiModels.find((model) => model.name === input.priceModel);
+      botPricePerMessageRequest.priceModels.find(
+        (model) => model.name.toLowerCase() === input.priceModel.toLowerCase(),
+      );
 
     if (selectedModel == null) {
-      selectedModel = aiModels[0];
+      selectedModel = botPricePerMessageRequest.priceModels[0];
     }
     if (selectedModel.price > 0) {
       if (input.payToken == null) {
@@ -95,14 +97,10 @@ export class GPTService {
 
     this.logger.log(`Selected Model: ${selectedModel.name} ${input.content}`);
     const model = new ChatOpenAI({
-      model: selectedModel.name,
-      temperature: 1,
+      model: selectedModel.name.toLowerCase(),
+      temperature: 0.8,
       openAIApiKey: process.env.OPENAI_API_KEY,
       maxTokens: 2048,
-      // configuration: {
-      // organization: process.env.OPENAI_ORG_ID,
-      // baseURL: 'https://api.aihubmix.com/v1',
-      // },
     });
     const memory = this.getSession(selectedModel.name, input.from);
     const chain = new ConversationChain({ llm: model, memory });
