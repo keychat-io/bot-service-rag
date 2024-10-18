@@ -97,7 +97,6 @@ export class MessageService {
       res = await axios.post(process.env.BOT_CENTER_RECEIVE_ECASH, token, {
         timeout: 5000,
       });
-      this.logger.log(`Payment Received: ${JSON.stringify(res.data)}`);
     } catch (error) {
       if (error.response) {
         let message = error.response.data.error || 'ReceiveFailed';
@@ -105,11 +104,9 @@ export class MessageService {
           message = 'Receive_Ecash_Timeout';
         }
         throw new Error(`Receive_Ecash_Failed_${message}`);
-      } else if (error.request) {
-        this.logger.error(error, error.stack);
-        throw new Error(`Receive_Ecash_Failed. Try Again later`);
       }
-      throw new Error(error.message);
+      this.logger.error(error, error.stack);
+      throw new Error(error.message || 'Receive_Ecash_Failed');
     }
 
     if (res.data.code == 200 && res.data.data >= amount) {
