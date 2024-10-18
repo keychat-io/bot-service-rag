@@ -86,7 +86,6 @@ export class GPTService {
       );
       return;
     }
-
     const model = new ChatOpenAI({
       model: selectedModel.name.toLowerCase(),
       temperature: 0.5,
