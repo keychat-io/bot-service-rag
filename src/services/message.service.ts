@@ -106,9 +106,8 @@ export class MessageService {
         }
         throw new Error(`Receive_Ecash_Failed_${message}`);
       } else if (error.request) {
-        throw new Error(
-          `Receive_Ecash_Failed: ${JSON.stringify(error.request)}`,
-        );
+        this.logger.error(error, error.stack);
+        throw new Error(`Receive_Ecash_Failed. Try Again later`);
       }
       throw new Error(error.message);
     }
