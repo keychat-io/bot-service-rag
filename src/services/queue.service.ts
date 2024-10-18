@@ -18,8 +18,8 @@ export class QueueService {
   async onModuleInit(): Promise<void> {
     this.queue = new BeeQueue('chatgptQueue', {
       redis: {
-        host: this.configService.get<string>('redis.host'),
-        port: this.configService.get<number>('redis.port'),
+        host: process.env.REDIS_HOST,
+        port: process.env.REDIS_PORT,
       },
       isWorker: true,
     });
