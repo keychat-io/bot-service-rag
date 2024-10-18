@@ -26,6 +26,14 @@ $ yarn run start:dev
 $ yarn run start:prod
 ```
 
+## bot-center
+ **Deploy `bot-center` project first**
+
+[https://github.com/keychat-io/bot-center](https://github.com/keychat-io/bot-center)
+### Features
+1. Connect to relay, receive and send messages
+2. Maintain an ecash wallet and provide payment API
+
 ## Set Bot Metadata
 Once set, the app will recognize this account as a bot.
 
