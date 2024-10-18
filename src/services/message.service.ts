@@ -56,9 +56,10 @@ export class MessageService {
     });
   }
   async sendMessageToClient(to: string, message: string) {
+    this.logger.log(`sendMessageToClient: ${to} ${message}`);
+
     try {
       const url = `${process.env.BOT_CENTER_SEND_MESSAGE}/from/${process.env.GPT_BOT_PUBKEY}/to/${to}`;
-
       const response = await axios.post(url, message);
       this.logger.log(`Message response: ${JSON.stringify(response.data)}`);
     } catch (error) {
@@ -68,6 +69,31 @@ export class MessageService {
       );
     }
   }
+
+  async receiveEcash(token: string, amount: number) {
+    let res: any;
+    try {
+      res = await axios.post(process.env.BOT_CENTER_RECEIVE_ECASH, token, {
+        timeout: 5000,
+      });
+      this.logger.log(`Payment Received: ${JSON.stringify(res.data)}`);
+    } catch (error) {
+      if (error.response) {
+        throw new Error(
+          `Receive_Ecash_Failed1: ${JSON.stringify(error.response.data)}`,
+        );
+      } else if (error.request) {
+        throw new Error(`Receive_Ecash_Failed: ${error.request}`);
+      }
+      throw new Error(error.message);
+    }
+
+    if (res.data.code == 200 && res.data.data >= amount) {
+      return;
+    }
+    throw new Error(`Payment_Amount_Not_Match_${amount}_SAT`);
+  }
+
   async sendHelloMessage() {
     if (process.env.GPT_BOT_PUBKEY.length === 0) {
       this.logger.error('process.env.GPT_BOT_PUBKEY is empty');
@@ -102,8 +128,8 @@ export class MessageService {
 
   proccessText(neo: NostrEventDto, ccd: ClientMessageDto) {
     if (
-      ccd.message.startsWith('/') &&
-      getBotSupportCommands().has(ccd.message)
+      ccd.content.startsWith('/') &&
+      getBotSupportCommands().has(ccd.content)
     ) {
       return this.proccessCommand(neo, ccd);
     }
@@ -112,9 +138,7 @@ export class MessageService {
       eventId: neo.id,
       from: neo.from,
       to: neo.to,
-      content: ccd.message,
-      priceModel: ccd.priceModel,
-      payToken: ccd.payToken,
+      clientMessageDto: ccd,
     } as ChatInputParams);
     return { code: 200 };
   }
@@ -127,7 +151,7 @@ export class MessageService {
   async proccessCommand(neo: NostrEventDto, cmd: ClientMessageDto) {
     this.logger.log(`cmd: ${cmd.toJson()} received`);
 
-    switch (cmd.message) {
+    switch (cmd.content) {
       case BotSupportCommands.HELP:
         const helpMessage = `I am a chatbot that can help you with your queries. Pay ecash for each message you send.`;
         return this.sendMessageToClient(neo.from, helpMessage);

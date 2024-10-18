@@ -17,30 +17,23 @@
     "message": "I am a chatbot that can help you with your queries. Pay ecash for each message you send. Please select a model to chat",
     "priceModels": [
       {
-        "name": "GPT-3.5-Turbo",
-        "description": "",
-        "price": 0,
-        "unit": "sat",
-        "mints": []
-      },
-      {
         "name": "GPT-4o-mini",
         "description": "",
-        "price": 10,
+        "price": 1,
         "unit": "sat",
         "mints": []
       },
       {
         "name": "GPT-4o",
         "description": "",
-        "price": 20,
+        "price": 4,
         "unit": "sat",
         "mints": []
       },
       {
         "name": "GPT-4-Turbo",
         "description": "",
-        "price": 40,
+        "price": 8,
         "unit": "sat",
         "mints": []
       }

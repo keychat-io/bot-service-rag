@@ -8,6 +8,7 @@ import { ConfigService } from '@nestjs/config';
 import { ChatInputParams } from 'src/dto/chat_input_params.dto';
 import { MessageService } from './message.service';
 import metadata from '../config/metadata.json';
+import { ClientMessageDto } from 'src/dto/client_message.dto';
 
 @Injectable()
 export class GPTService {
@@ -63,7 +64,7 @@ export class GPTService {
   async proccessChat(input: ChatInputParams): Promise<string> {
     // try keychat hello message
     try {
-      const map = JSON.parse(input.content);
+      const map = JSON.parse(input.clientMessageDto.content);
       if (map['c'] == 'signal' && map['type'] == 101) {
         this.logger.log('Hello message received');
         // await this.messageService.sendMessageToClient(
@@ -76,20 +77,30 @@ export class GPTService {
     } catch (error) {}
 
     this.logger.log(`Chat Input: ${JSON.stringify(input)}`);
-    const selectedModel = this.getSelectedModelFromMetadata(input.priceModel);
+    const selectedModel = this.getSelectedModelFromMetadata(
+      input.clientMessageDto.priceModel,
+    );
 
-    if (selectedModel.price > 0) {
-      if (input.payToken == null) {
-        this.logger.log(
-          `Payment Required: ${selectedModel.price} ${selectedModel.unit}`,
-        );
+    this.logger.log(
+      `Selected: ${selectedModel.name}, ${input.clientMessageDto.content}`,
+    );
+
+    // receive ecash payment
+    try {
+      await this.receiveEcash(selectedModel, input.clientMessageDto);
+    } catch (error) {
+      console.log('111');
+      if (error.message == 'Payment_Required') {
+        this.logger.log('Payment Required');
         return;
-      } else {
-        // TODO excute payment logic
       }
-      this.logger.log('paytoken: ' + input.payToken);
+      this.logger.log(`Payment Error: ${error.message}`, error.stack);
+      await this.messageService.sendMessageToClient(
+        input.from,
+        '[Error]:' + error.message,
+      );
+      return;
     }
-    this.logger.log(`Selected: ${selectedModel.name}, ${input.content}`);
 
     const model = new ChatOpenAI({
       model: selectedModel.name.toLowerCase(),
@@ -99,10 +110,40 @@ export class GPTService {
     });
     const memory = this.getSession(selectedModel.name, input.from);
     const chain = new ConversationChain({ llm: model, memory });
-    const { response } = await chain.invoke({ input: input.content });
-    this.logger.log('AI Response:', response);
-    this.messageService.sendMessageToClient(input.from, response);
-    return response;
+    // const { response } = await chain.invoke({ input: input.content });
+    // this.logger.log('AI Response:', response);
+    // this.messageService.sendMessageToClient(input.from, response);
+    return 'response';
+  }
+  async receiveEcash(
+    selectedModel: {
+      name: string;
+      description: string;
+      price: number;
+      unit: string;
+      mints: any[];
+    },
+    clientMessageDto: ClientMessageDto,
+  ) {
+    if (selectedModel.price == 0) return;
+    if (clientMessageDto.payTokenDecode == null) {
+      throw new Error('Payment_Required');
+    } else {
+      const map = JSON.parse(clientMessageDto.payTokenDecode);
+
+      if (map['unit'] != 'sat') {
+        throw new Error('Invalid payment unit, only support ecash sat');
+      }
+      if (map['amount'] < selectedModel.price) {
+        throw new Error(
+          `Insufficient Funds: ${map['amount']} < ${selectedModel.price}`,
+        );
+      }
+      await this.messageService.receiveEcash(
+        clientMessageDto.payToken,
+        selectedModel.price,
+      );
+    }
   }
   getSelectedModelFromMetadata(priceModel: string) {
     if (priceModel == null) {
