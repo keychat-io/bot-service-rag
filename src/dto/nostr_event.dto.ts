@@ -7,6 +7,7 @@ export class NostrEventDto {
   sig: string;
 
   static parse(data: string): NostrEventDto {
+    console.log(data);
     const jsonObj = JSON.parse(data);
     return new NostrEventDto().fromJSON(jsonObj);
   }

@@ -10,6 +10,7 @@ import WS from 'ws';
 import axios from 'axios';
 import metadata from '../config/metadata.json';
 import { RedisService } from './redis.service';
+import { delay } from 'rxjs';
 
 enum BotSupportCommands {
   HELP = '/h',
@@ -40,7 +41,7 @@ export class MessageService {
     );
     this.websocket.addEventListener('open', () => {
       this.logger.log(`${process.env.BOT_CENTER_SUBSCRIBE} connected`);
-      // this.sendHelloMessage();
+      this.sendHelloMessage();
     });
 
     this.websocket.addEventListener('message', (data) => {
@@ -48,15 +49,24 @@ export class MessageService {
       let ned: NostrEventDto;
       try {
         ned = NostrEventDto.parse(data.data);
+        if (ned.id == null) return;
+        this.websocket.send(ned.id);
         this.proccessMessage(ned);
       } catch (error) {
-        this.logger.error(error.message, error.stack);
-      } finally {
-        if (ned != null && ned.id != null) {
-          this.websocket.send(ned.id);
-        }
+        this.logger.error(error.message);
       }
     });
+  }
+  async sendHelloMessage() {
+    await delay(500);
+    const keys = Object.keys(metadata).filter((key) => key.length === 64);
+    if (keys.length === 0) {
+      this.logger.error('config/metadata.json not configured');
+      return;
+    }
+    const listen = keys.join(';');
+    console.log(`send listening: ${listen}`);
+    this.websocket.send(listen);
   }
 
   async sendErrorMessageToClient(bot: string, to: string, message: string) {

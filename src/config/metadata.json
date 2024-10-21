@@ -1,6 +1,6 @@
 {
   "2714ef65b4f14c5c74b1d817eefcc1a994835de3034bfd2d5e2d3e8abbbadf32": {
-    "name": "GPT-4o-mini",
+    "name": "GPT-4o-mini /1sat",
     "type": "Chatbot",
     "description": "I am a chatbot that can help you with your queries.",
     "botPricePerMessageRequest": {
@@ -18,7 +18,7 @@
     }
   },
   "36a9cbbd16466f64a4d98bc71e438a90c18b5c01741ac2f2eb621365a416e9f7": {
-    "name": "GPT-4o 8sat",
+    "name": "GPT-4o /8sat",
     "type": "Chatbot",
     "description": "I am a chatbot that can help you with your queries.",
     "botPricePerMessageRequest": {
@@ -28,7 +28,7 @@
         {
           "name": "GPT-4o",
           "description": "",
-          "price": 1,
+          "price": 8,
           "unit": "sat",
           "mints": []
         }
@@ -69,6 +69,42 @@
         },
         {
           "name": "GPT-4-Turbo",
+          "description": "",
+          "price": 8,
+          "unit": "sat",
+          "mints": []
+        }
+      ]
+    }
+  },
+  "c095a79edcc5d87740063dbd53d18e0cf98ee2129a7509b0883492cca42a517e": {
+    "name": "[test]GPT-4o-mini",
+    "type": "Chatbot",
+    "description": "I am a chatbot that can help you with your queries.",
+    "botPricePerMessageRequest": {
+      "type": "botPricePerMessageRequest",
+      "message": "I am a chatbot that can help you with your queries. Pay ecash for each message you send. Please select a model to chat",
+      "priceModels": [
+        {
+          "name": "GPT-4o-mini",
+          "description": "",
+          "price": 1,
+          "unit": "sat",
+          "mints": []
+        }
+      ]
+    }
+  },
+  "62c50fa12beb648089575e9fa8804bcf2534142560eaa6c85bae6783efc664c8": {
+    "name": "[test]GPT-4o 8sat",
+    "type": "Chatbot",
+    "description": "I am a chatbot that can help you with your queries.",
+    "botPricePerMessageRequest": {
+      "type": "botPricePerMessageRequest",
+      "message": "I am a chatbot that can help you with your queries. Pay ecash for each message you send. Please select a model to chat",
+      "priceModels": [
+        {
+          "name": "GPT-4o",
           "description": "",
           "price": 8,
           "unit": "sat",

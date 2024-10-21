@@ -29,6 +29,17 @@ export class GPTService {
   }
 
   async proccessChat(input: ChatInputParams): Promise<string> {
+    const exist = await this.redisService
+      .getClient()
+      .setnx(`eventId:${input.eventId}`, 1);
+    if (exist == 0) {
+      this.logger.error(`Proccessed: ${input.eventId}`);
+      return;
+    }
+    await this.redisService
+      .getClient()
+      .expire(`eventId:${input.eventId}`, 3600 * 24 * 30);
+
     // try keychat hello message
     try {
       const map = JSON.parse(input.clientMessageDto.content);
@@ -65,20 +76,21 @@ export class GPTService {
       );
       return;
     }
+    this.logger.log(`Payment Success ${input.eventId}`);
     const model = new ChatOpenAI({
       model: selectedModel.name.toLowerCase(),
       temperature: 0.5,
       openAIApiKey: process.env.OPENAI_API_KEY,
-      maxTokens: 4096,
+      maxTokens: 512,
     });
     const memory = this.getSession(selectedModel.name, input.from);
     const chain = new ConversationChain({ llm: model, memory });
-    const { response, usage_metadata } = await chain.invoke({
+    const res = await chain.invoke({
       input: input.clientMessageDto.content,
     });
-    this.logger.log('AI Response:', response);
-    this.logger.log('AI usage_metadata:', usage_metadata);
-    this.messageService.sendMessageToClient(input.to, input.from, response);
+    this.logger.log('AI Response:', res.response);
+    this.logger.log('AI usage_metadata:', res.usage_metadata);
+    this.messageService.sendMessageToClient(input.to, input.from, res.response);
     return 'response';
   }
   async receiveEcash(
