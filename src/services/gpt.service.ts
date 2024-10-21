@@ -94,10 +94,11 @@ export class GPTService {
     });
     const memory = this.getSession(selectedModel.name, input.from);
     const chain = new ConversationChain({ llm: model, memory });
-    const { response } = await chain.invoke({
+    const { response, usage_metadata } = await chain.invoke({
       input: input.clientMessageDto.content,
     });
     this.logger.log('AI Response:', response);
+    this.logger.log('AI usage_metadata:', usage_metadata);
     this.messageService.sendMessageToClient(input.from, response);
     return 'response';
   }
