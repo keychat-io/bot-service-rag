@@ -6,10 +6,9 @@ import { MessageTypeEnum } from 'src/dto/message_type_enum';
 import { QueueService } from './queue.service';
 import { ChatInputParams } from 'src/dto/chat_input_params.dto';
 import ReconnectingWebSocket from 'reconnecting-websocket';
-import { delay } from 'rxjs';
 import WS from 'ws';
 import axios from 'axios';
-import { botPricePerMessageRequest } from '../config/metadata.json';
+import metadata from '../config/metadata.json';
 import { RedisService } from './redis.service';
 
 enum BotSupportCommands {
@@ -41,7 +40,7 @@ export class MessageService {
     );
     this.websocket.addEventListener('open', () => {
       this.logger.log(`${process.env.BOT_CENTER_SUBSCRIBE} connected`);
-      this.sendHelloMessage();
+      // this.sendHelloMessage();
     });
 
     this.websocket.addEventListener('message', (data) => {
@@ -74,13 +73,13 @@ export class MessageService {
     } else {
       await this.redisService.getClient().set(key, 1, 'EX', 60);
     }
-    await this.sendMessageToClient(to, `[Error] ${message}`);
+    await this.sendMessageToClient(bot, to, `[Error] ${message}`);
   }
 
-  async sendMessageToClient(to: string, message: string) {
+  async sendMessageToClient(bot: string, to: string, message: string) {
     this.logger.log(`sendMessageToClient: ${to} ${message}`);
     try {
-      const url = `${process.env.BOT_CENTER_SEND_MESSAGE}/from/${process.env.GPT_BOT_PUBKEY}/to/${to}`;
+      const url = `${process.env.BOT_CENTER_SEND_MESSAGE}/from/${bot}/to/${to}`;
       const response = await axios.post(url, message);
       this.logger.log(`Message response: ${JSON.stringify(response.data)}`);
     } catch (error) {
@@ -113,15 +112,6 @@ export class MessageService {
       return;
     }
     throw new Error(`Payment_Amount_Not_Match_${amount}_SAT`);
-  }
-
-  async sendHelloMessage() {
-    if (process.env.GPT_BOT_PUBKEY.length === 0) {
-      this.logger.error('process.env.GPT_BOT_PUBKEY is empty');
-      return;
-    }
-    await delay(500);
-    this.websocket.send(process.env.GPT_BOT_PUBKEY);
   }
 
   proccessMessage(neo: NostrEventDto) {
@@ -179,9 +169,12 @@ export class MessageService {
     switch (cmd.content) {
       case BotSupportCommands.HELP:
         const helpMessage = `I am a chatbot that can help you with your queries. Pay ecash for each message you send.`;
-        return this.sendMessageToClient(neo.from, helpMessage);
+        return this.sendMessageToClient(neo.to, neo.from, helpMessage);
       case BotSupportCommands.MODELS:
+        const botPricePerMessageRequest =
+          metadata[neo.to].botPricePerMessageRequest;
         return this.sendMessageToClient(
+          neo.to,
           neo.from,
           JSON.stringify(botPricePerMessageRequest),
         );

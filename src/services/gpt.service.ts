@@ -28,28 +28,6 @@ export class GPTService {
     });
   }
 
-  async getSelectedModel(from: string) {
-    const key = `gptModel:${from}`;
-    const res = await this.redisService.getClient().get(key);
-    return res || 'gpt-4o-mini';
-  }
-
-  async setSelectedModel(from: string, model: string) {
-    // if (!Object.values(OpenAIModels).includes(model as OpenAIModels)) {
-    //   this.logger.debug('Invalid Model Selected');
-    //   model = 'gpt-4o-mini';
-    // }
-    const key = `gptModel:${from}`;
-    await this.redisService.getClient().set(key, model);
-  }
-
-  async clearSession(from: string) {
-    const model = await this.getSelectedModel(from);
-    const memory = this.getSession(model, from);
-    memory.clear();
-    return 'Success';
-  }
-
   async proccessChat(input: ChatInputParams): Promise<string> {
     // try keychat hello message
     try {
@@ -63,6 +41,7 @@ export class GPTService {
 
     this.logger.log(`Chat Input: ${JSON.stringify(input)}`);
     const selectedModel = this.getSelectedModelFromMetadata(
+      input.to,
       input.clientMessageDto.priceModel,
     );
 
@@ -99,7 +78,7 @@ export class GPTService {
     });
     this.logger.log('AI Response:', response);
     this.logger.log('AI usage_metadata:', usage_metadata);
-    this.messageService.sendMessageToClient(input.from, response);
+    this.messageService.sendMessageToClient(input.to, input.from, response);
     return 'response';
   }
   async receiveEcash(
@@ -135,15 +114,15 @@ export class GPTService {
       );
     }
   }
-  getSelectedModelFromMetadata(priceModel: string) {
+  getSelectedModelFromMetadata(bot: string, priceModel: string) {
     if (priceModel == null) {
-      return metadata.botPricePerMessageRequest.priceModels[0];
+      return metadata[bot].botPricePerMessageRequest.priceModels[0];
     }
-    for (const model of metadata.botPricePerMessageRequest.priceModels) {
+    for (const model of metadata[bot].botPricePerMessageRequest.priceModels) {
       if (model.name.toLowerCase() === priceModel.toLowerCase()) {
         return model;
       }
     }
-    return metadata.botPricePerMessageRequest.priceModels[0];
+    return metadata[bot].botPricePerMessageRequest.priceModels[0];
   }
 }

@@ -1,0 +1,16 @@
+[
+  {
+    "name": "GPT-4o-mini /1 sat",
+    "type": "Chatbot",
+    "npub": "npub1cz2608kuchv8wsqx8k7485vwpnucacsjnf6snvygxjfvefp229lqh5tdm5",
+    "hex": "c095a79edcc5d87740063dbd53d18e0cf98ee2129a7509b0883492cca42a517e",
+    "description": "I am a chatbot that can help you with your queries."
+  },
+  {
+    "name": "GPT-4o /8 sat",
+    "type": "Chatbot",
+    "npub": "npub1vtzslgftadjgpz2ht6063qzteujng9p9vr42djzm4enc8m7xvnyqt472eu",
+    "hex": "62c50fa12beb648089575e9fa8804bcf2534142560eaa6c85bae6783efc664c8",
+    "description": "I am a chatbot that can help you with your queries."
+  }
+]
