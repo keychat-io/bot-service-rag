@@ -99,6 +99,11 @@ export class GPTService {
     },
     clientMessageDto: ClientMessageDto,
   ) {
+    if (process.env.FREE === 'true') {
+      this.logger.log('Free mode');
+      return;
+    }
+
     if (selectedModel.price == 0) return;
     if (clientMessageDto.payTokenDecode == null) {
       throw new Error('Please confirm the price plan');
