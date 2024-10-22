@@ -64,10 +64,6 @@ export class GPTService {
     try {
       await this.receiveEcash(selectedModel, input.clientMessageDto);
     } catch (error) {
-      if (error.message == 'Payment_Required') {
-        this.logger.log('Payment Required');
-        return;
-      }
       this.logger.log(`Payment Error: ${error.message}`, error.stack);
       await this.messageService.sendErrorMessageToClient(
         input.to,
@@ -105,7 +101,7 @@ export class GPTService {
   ) {
     if (selectedModel.price == 0) return;
     if (clientMessageDto.payTokenDecode == null) {
-      throw new Error('Payment_Required');
+      throw new Error('Please confirm the price plan');
     } else {
       const map =
         typeof clientMessageDto.payTokenDecode === 'string'
