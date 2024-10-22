@@ -147,3 +147,11 @@ Client's send message like this:
 ```
 
 bot server will recive `payToken`, and make response to user.
+
+
+## Local Http API Test
+1. Set FREE=true in `.env` file to skip ecash verify
+2. Curl the api in local development environment
+```
+ curl -X POST -H 'Content-type: application/json' --data '{"id":"41966824fd221d6aec4af7f75a9473a1486aa33e23e5794b400693597b66e9d","from":"0b464234a9a1819dcf9498244d845daa6bc176c30480e79e3b8cb69b1d69f121","to":"c095a79edcc5d87740063dbd53d18e0cf98ee2129a7509b0883492cca42a517e","ts":1729219617000,"kind":4,"content":"{\"type\":\"botText\",\"message\":\"Who are your?\",\"priceModel\":\"cashuBo2Ftd2h0dHBzOi8vODMzMy5zcGFjZTozMzM4YXVjc2F0YXSBomFpSAB1nj-LBrNvYXCBo2FhAWFzeEBiN2Nk2NDk5OTBhZTZjYTllYzYwMmQwNDk1NGM2ZjZmOTBiMmMwNWMzMDMyNWVlNDZmNjU0MmZhZGRhZWFjNGZiYWNYIQOdOWhtZ18AAwDRnImNah9D4P8uDw6Vp1lagRoEqFGPqQ\"}"}' http://127.0.0.1:3000/chat
+```
