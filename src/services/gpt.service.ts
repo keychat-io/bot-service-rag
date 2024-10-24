@@ -44,7 +44,7 @@ export class GPTService {
         input,
       );
       this.logger.log('AI Response:', status, data);
-      // this.messageService.sendMessageToClient(input.to, input.from, res.response);
+      await this.messageService.sendMessageToClient(input.to, input.from, data);
     } catch (error) {
       console.error(error.response);
     }
