@@ -1,5 +1,5 @@
 {
-  "name": "gpt-bot-rag",
+  "name": "bot-service-rag",
   "version": "0.0.1",
   "description": "",
   "author": "",
@@ -18,8 +18,8 @@
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
-    "deploy:start": "nest build && pm2 start dist/main.js --name gpt-bot-service -i 1",
-    "deploy:restart": "git pull origin && nest build && pm2 restart gpt-bot-service"
+    "deploy:start": "nest build && pm2 start dist/main.js --name bot-service-rag -i 1",
+    "deploy:restart": "git pull origin && nest build && pm2 restart bot-service-rag"
   },
   "dependencies": {
     "@nestjs/common": "^10.0.0",
