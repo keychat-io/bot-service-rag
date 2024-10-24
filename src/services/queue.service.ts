@@ -16,7 +16,7 @@ export class QueueService {
   ) {}
 
   async onModuleInit(): Promise<void> {
-    this.queue = new BeeQueue('btcRAG', {
+    this.queue = new BeeQueue('rag', {
       redis: {
         host: process.env.REDIS_HOST,
         port: process.env.REDIS_PORT,
