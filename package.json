@@ -1,5 +1,5 @@
 {
-  "name": "gpt-bot-service",
+  "name": "gpt-bot-rag",
   "version": "0.0.1",
   "description": "",
   "author": "",
@@ -22,9 +22,6 @@
     "deploy:restart": "git pull origin && nest build && pm2 restart gpt-bot-service"
   },
   "dependencies": {
-    "@langchain/community": "^0.3.2",
-    "@langchain/core": "^0.3.3",
-    "@langchain/openai": "^0.3.0",
     "@nestjs/common": "^10.0.0",
     "@nestjs/config": "^3.2.3",
     "@nestjs/core": "^10.0.0",
