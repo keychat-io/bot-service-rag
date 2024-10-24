@@ -3,7 +3,7 @@ import config from './metadata.json';
 
 async function main() {
   const keys = [
-    '5325c52e2cac4b62fb8b0f15eb1a72bbedfa494322e3d0842c022f88a98314ad',
+    'c2addc1063b2fbde63414f268f1a6f1378d7780cc8fc2130b1b0210d7ad64612',
   ];
 
   for (const key of keys) {
