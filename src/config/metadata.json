@@ -2,10 +2,10 @@
   "c2addc1063b2fbde63414f268f1a6f1378d7780cc8fc2130b1b0210d7ad64612": {
     "name": "BTC Master /1sat",
     "type": "Chatbot",
-    "description": "",
+    "description": "An informational bitcoin robot, powered by btcstudy.org and other qualified bitcoin websites, hence able to provide precise answers for your questions about bitcoin, from technology, to culture. 1 Sat for every question, tell you why should we HOLD bitcoin.",
     "botPricePerMessageRequest": {
       "type": "botPricePerMessageRequest",
-      "message": "I am a chatbot that can help you with your queries. Pay ecash for each message you send. Please confirm the price plan to chat",
+      "message": "An informational bitcoin robot, powered by btcstudy.org and other qualified bitcoin websites, hence able to provide precise answers for your questions about bitcoin, from technology, to culture. 1 Sat for every question, tell you why should we HOLD bitcoin. Please confirm the price plan to chat",
       "priceModels": [
         {
           "name": "Master",

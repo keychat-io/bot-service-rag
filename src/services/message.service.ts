@@ -135,6 +135,21 @@ export class MessageService {
         message: neo.content,
       });
     }
+
+    try {
+      const map = JSON.parse(ccd.content);
+      if (map['c'] == 'signal' && map['type'] == 101) {
+        return this.sendMessageToClient(
+          neo.to,
+          neo.from,
+          "Great, let's get started! You can ask me any question about Bitcion.",
+        );
+      }
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    } catch (error) {
+      this.logger.error('Invalid JSON');
+    }
+
     this.logger.log(`ClientCommandDto: ${JSON.stringify(ccd)}`);
     switch (ccd.type) {
       case MessageTypeEnum.botText:
